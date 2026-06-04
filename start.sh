@@ -27,12 +27,22 @@ ls -la /usr/local/bin/gbrain # Verify file creatons
 echo "=== Step 4: SSH key setup ==="
 mkdir -p ~/.ssh
 echo "GIT_SSH_PRIVATE_KEY length: ${#GIT_SSH_PRIVATE_KEY}"
+
+set +x  # mute trace — don't echo the key to logs
 echo "$GIT_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+set -x  # resume trace
+
 chmod 600 ~/.ssh/id_ed25519
 ls -la ~/.ssh/id_ed25519 # Verify file creatons
-ssh-keyscan github.com >> ~/.ssh/known_hosts 2>&1
-echo "known_hosts:"
-wc -l ~/.ssh/known_hosts # Verify file creatons
+# Hardcode GitHub's SSH host keys (publically available) — ssh-keyscan hangs on Railway (port 22 issues)
+cat > ~/.ssh/known_hosts << 'EOF'
+github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJ
+github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
+github.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCj7ndNxQowgcQnjshcLrqPEiiphnt+VTTvDP6mHBL9j1aNUkY4Ue1gvwnGLVlOhGeYrnZaMgRK6+PKCUXaDbC7qtbW8gIkhL7aGCsOr/C56SJMy/BCZfxd1nWzAOxSDPgVsmerOBYfNqltV9/hWCqBywINIR+5dIg6JTJ72pcEpEjcYgXkE2YEFXV1JHnsKgbLWNlhScqb2UmyRkQyytRLtL+38TGxkxCflmO+5Z8CSSNY7GidjMIZ7Q4zMjA2n1nGrlTDkzwDCsw+wqFPGQA179cnfGWOWRVruj16z6XyvxvjJwbz0wQZ75XK5tKSb7FNyeIEs4TT4jk+S4dhPeAUC5y+bDYirYgM4GC7uEnztnZyaVWQ7B381AK4Qdrwt51ZqExKbQpTUNn+EjqoTwvqNj4kqx5QUCI0ThS/YkOxJCXmPUWZbhjpCg56i+2aB6CmK2JGhn57K5mj0MNdBXA4/WnwH6XoPWJzK5Nyu2zB3nAZp+S5hpQs+p1vN1/wsjk=
+EOF
+# printf '%s\n' "$GITHUB_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+chmod 644 ~/.ssh/known_hosts
+echo "known_hosts entries: $(wc -l < ~/.ssh/known_hosts)" # Verify file creatons
 
 # Apply migrations (idempotent) then start the HTTP server.
 # Mandatory aspects of the serve command:
