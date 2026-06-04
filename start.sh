@@ -55,4 +55,6 @@ echo "=== Step 5: Apply migrations ==="
 bun src/cli.ts apply-migrations --yes --non-interactive
 
 echo "=== Step 6: Start HTTP server ==="
+# Launch autopilot in background — handles re-sync, minion jobs, scheduled work
+bash /root/.gbrain/start-autopilot.sh &
 exec bun src/cli.ts serve --http --bind 0.0.0.0 --port "$PORT" --public-url "$GBRAIN_OAUTH_ISSUER"
